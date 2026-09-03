@@ -36,7 +36,7 @@ jobs:
           # The expression is evaluated by the Actions runner and yields the
           # literal string "true" or "false"; it is passed through the
           # environment rather than being interpolated into the script body.
-          IS_SPAM: ${{ contains(github.event.*.labels.*.name, 'spam') }}
+          IS_SPAM: ${{ contains(github.event.issue.labels.*.name, 'spam') }}
 
   notify:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
       - name: Resolve channel and mention
         id: routing
         run: |
-          # `${{ }}` interpolation is textual substitution performed before the
+          # Expression interpolation is textual substitution performed before the
           # shell sees the script, so untrusted values must never appear in
           # command position. Everything below reads from the environment.
           if printf '%s' "$LABEL_NAMES" | grep -q 'type:'; then
@@ -73,8 +73,8 @@ jobs:
           text="${text//'{{mention}}'/${MENTION}}"
           text="${text//'{{repo}}'/${REPOSITORY}}"
           # Assemble the payload with jq. This is the fix for the JSON-injection
-          # flaw: the previous version interpolated ${{ env.title }} — the raw,
-          # attacker-chosen issue title — directly inside a JSON string literal.
+          # flaw: the previous version interpolated the raw, attacker-chosen 
+          # issue title directly inside a JSON string literal.
           # An issue titled  x", "channel": "#elsewhere", "text": "spoofed
           # terminated the string and rewrote the object, letting any GitHub user
           # redirect the notification to another Slack channel and forge its
