@@ -41,7 +41,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     needs: checks
-    if: ${{ vars.SLACK_ENABLED == 'true' && needs.checks.outputs.skip != 'true' }}
+    if: vars.SLACK_ENABLED == 'true' && needs.checks.outputs.skip != 'true'
     steps:
       - name: Resolve channel and mention
         id: routing
@@ -63,7 +63,6 @@ jobs:
         id: payload
         run: |
           set -euo pipefail
-
           # Substitute the template placeholders with bash parameter expansion on
           # environment variables. No untrusted value is ever spliced into the
           # script text itself.
@@ -73,7 +72,6 @@ jobs:
           text="${text//'{{url}}'/${ISSUE_URL}}"
           text="${text//'{{mention}}'/${MENTION}}"
           text="${text//'{{repo}}'/${REPOSITORY}}"
-
           # Assemble the payload with jq. This is the fix for the JSON-injection
           # flaw: the previous version interpolated ${{ env.title }} — the raw,
           # attacker-chosen issue title — directly inside a JSON string literal.
@@ -92,7 +90,6 @@ jobs:
               --arg icon ":${ICON_EMOJI}:" \
               '{channel: $channel, text: ("*" + $title + "*\n" + $body), icon_emoji: $icon}'
           )"
-
           echo "json=${payload}" >> "$GITHUB_OUTPUT"
         env:
           SLACK_TEMPLATE: ${{ vars.SLACK_TEMPLATE }}
